@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  nginx:
+    build: ./nginx
+    ports:
+      - "8080:80"
+    depends_on:
+      - service1
+      - service2
+    networks:
+      - backend
+
+  service1:
+    build: ./service_1
+    expose:
+      - "8000"  # Let NGINX connect internally; no need to publish to host
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  service2:
+    build: ./service_2
+    expose:
+      - "8001"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/hello"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  backend:
+    driver: bridge
